@@ -1,0 +1,62 @@
+List user from database:
+curl http://localhost:5000/hello
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   178  100   178    0     0    695      0 --:--:-- --:--:-- --:--:--   695{
+    "afroze": {
+        "dateofBirth": "1986-12-10"
+    },
+    "ahmed": {
+        "dateofBirth": "1973-7-9"
+    },
+    "andrew": {
+        "dateofBirth": "2018-3-10"
+    }
+}
+
+GET API:
+curl http://localhost:5000/hello/afroze
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100    98  100    98    0     0    437      0 --:--:-- --:--:-- --:--:--   437{
+    "dateofBirth": "1986-12-10",
+    "message": "Hello afroze! Your birhday is in 141 days."
+}
+
+PUT API:
+curl http://localhost:5000/hello/megilla -d "dateofBirth=1985-10-12" -X PUT -v
+ HTTP 1.0, assume close after body
+ HTTP/1.0 201 CREATED
+
+checking latest added value
+curl http://localhost:5000/hello
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   305  100   305    0     0   1331      0 --:--:-- --:--:-- --:--:--  1331{
+    "afroze": {
+        "dateofBirth": "1986-12-10",
+        "message": "Hello afroze! Your birhday is in 141 days."
+    },
+    "ahmed": {
+        "dateofBirth": "1973-7-9"
+    },
+    "andrew": {
+        "dateofBirth": "2018-3-10"
+    },
+    "megilla": {
+        "dateofBirth": "1985-10-12"
+    }
+}
+
+if dateofbirth is incorrect
+curl http://localhost:5000/hello/megilla -d "dateofBirth=1985-10-12" -X PUT -v
+{
+    "message": "YYY-MM-DD must be a date before todays date"
+}
+
+if username is incorrect
+curl http://localhost:5000/hello/megilla1 -d "dateofBirth=1985-10-12" -X PUT -v
+{
+    "message": "<username> must contains only letters"
+}
+

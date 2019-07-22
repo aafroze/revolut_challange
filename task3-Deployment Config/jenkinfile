@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+
+    stages {
+        stage ('Clone') {
+            steps {
+                git branch: 'master', url: "https://github.com/aafroze/revolut_challange.git"
+            }
+        }
+		
+	  stage('Compile') { // Compile and do unit testing
+		  steps {
+			// run Gradle to execute compile and unit testing
+			sh 'cd task1-API code/;tar -cvf http_api.tar *'
+		  }
+		}
+	 stage ('Upload') {
+		 steps {
+				rtUpload (
+					buildName: 'http_api',
+					buildNumber: '1',
+					serverId: SERVER_ID, // Obtain an Artifactory server instance, defined in Jenkins --> Manage:
+					specPath: 'revolut-challange/resources/http_api.tar'				)
+			}
+		}
+	  stage('Deployment') {
+      parallel {
+        stage('Staging') {
+          when {
+            branch 'staging'
+          }
+          steps {
+				sh 'scp -oIdentityFile=/var/lib/jenkins/.key.pem http_api.tar ubuntu@ec2-3-83-239-32.compute-1.amazonaws.com:/tmp'
+				sh ‘ssh -i /var/lib/jenkins/.key.pem user@server "mv /tmp/http_api.tar /var/www/; tar -xvf /var/www/http_api.tar; cd /var/www/http_api; pthon ./api.py"’
+            }
+            mail(subject: 'Staging Build', body: 'New Deployment to Staging', to: 'jenkins-mailing-list@mail.com')
+          }
+        }
+        stage('Production') {
+          when {
+            branch 'master'
+          }
+          steps {
+            sh 'scp -oIdentityFile=/var/lib/jenkins/.key.pem http_api.tar ubuntu@ec2-3-83-239-32.compute-1.amazonaws.com:/tmp'
+			sh ‘ssh -i /var/lib/jenkins/.key.pem user@server "mv /tmp/http_api.tar /var/www/; tar -xvf /var/www/http_api.tar; cd /var/www/http_api; pthon ./api.py"’
+            }
+            mail(subject: 'Production Build', body: 'New Deployment to Production', to: 'jenkins-mailing-list@mail.com')
+          }
+        }
+	}
+}
